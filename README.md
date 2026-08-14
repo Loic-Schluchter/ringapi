@@ -15,7 +15,6 @@ A REST API featuring fictional planets and moons from **The Expanse** universe.
 
 - Read-only REST API for planets and moons
 - Nested relational data (planets ↔ moons ↔ solar system)
-- Case-insensitive lookups by name
 - Full request/response validation via JSON Schema
 - Auto-generated, interactive API docs (`/docs`)
 
