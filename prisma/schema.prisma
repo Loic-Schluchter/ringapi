@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model planet {
+  id                      Int      @id @default(autoincrement())
+  name                    String   @unique
+  description             String
+  systemId                Int?
+  type                    String?
+  diameter                Decimal? @db.Decimal
+  gravity                 Float?
+  length_of_day           Float?
+  length_of_year          String?
+  atmospheric_pressure    String?
+  atmospheric_composition Json?
+  temperature_min         Float?
+  temperature_avg         Float?
+  temperature_max         Float?
+  demonym                 String?
+  species                 String?
+  population              String?
+  government              String?
+  colonized               String?
+  moons                   moon[]
+  system                  system?  @relation(fields: [systemId], references: [id])
+}
+
+model moon {
+  id          Int     @id @default(autoincrement())
+  name        String  @unique
+  description String
+  planetId    Int?
+  planet      planet? @relation(fields: [planetId], references: [id])
+}
+
+model system {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String
+  planets     planet[]
+}
