@@ -84,11 +84,10 @@ Returns a single moon by name (case-insensitive), including its parent planet.
 **Example:** `GET /moons/luna`
 
 ## Roadmap
-## Roadmap
 
 **Deployment & docs**
 - [x] Deploy the API and publish the live base URL
-- [ ] Add a `description` field to Swagger schema properties for a richer `/docs` experience
+- [x] Add a `description` field to Swagger schema properties for a richer `/docs` experience
 - [ ] Add a health-check endpoint (`/health`) for uptime monitoring
 
 **Data**
