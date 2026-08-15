@@ -24,8 +24,8 @@ async function routes(fastify, options) {
             querystring: {
                 type: 'object',
                 properties: {
-                    page: { type: 'integer', minimum: 1, default: 1 },
-                    limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+                    page: { type: 'integer', minimum: 1, default: 1, description: 'Page number, starting at 1' },
+                    limit: { type: 'integer', minimum: 1, maximum: 100, default: 10, description: 'Number of results per page (max 100)' },
                     type: { type: 'string', enum: ['Terrestrial', 'Gas-giant', 'Ice-giant', 'Ice dwarf', 'Earth-like'], description: 'Filter by planet type, e.g. Gas-giant' },
                     colonized: { type: 'string', enum: ['Yes', 'No'], description: 'Filter by colonization status' },
                     name: { type: 'string', description: 'Partial, name search' }
@@ -229,8 +229,8 @@ async function routes(fastify, options) {
             querystring: {
                 type: 'object',
                 properties: {
-                    page: { type: 'integer', minimum: 1, default: 1 },
-                    limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+                    page: { type: 'integer', minimum: 1, default: 1, description: 'Page number, starting at 1' },
+                    limit: { type: 'integer', minimum: 1, maximum: 100, default: 10, description: 'Number of results per page (max 100)' },
                     name: { type: 'string', description: 'Partial, name search' }
                 }
             },
