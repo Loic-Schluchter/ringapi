@@ -76,11 +76,26 @@ Returns a single moon by name (case-insensitive), including its parent planet.
 **Example:** `GET /moons/luna`
 
 ## Roadmap
+## Roadmap
 
+**Deployment & docs**
 - [x] Deploy the API and publish the live base URL
+- [ ] Add a `description` field to Swagger schema properties for a richer `/docs` experience
+- [ ] Add a health-check endpoint (`/health`) for uptime monitoring
+
+**Data**
 - [ ] Normalize `length_of_year` / `atmospheric_pressure` into consistent numeric units
-- [ ] Add pagination and query filters (e.g. `?sortBy=`)
-- [ ] Expand data coverage within The Expanse universe
+- [ ] Expand data coverage within The Expanse universe (Belt stations, ships, factions)
+- [ ] Add a `systems` endpoint (`/systems`, `/systems/:system`) to query solar systems directly
+
+**API features**
+- [ ] Add pagination and query filters (e.g. `?page=`, `?limit=`, `?sortBy=name`, `?type=gas-giant`)
+- [ ] Add rate limiting to protect the free-tier hosting
+
+**Code quality**
+- [ ] Add automated tests (unit tests for route logic, integration tests against a test database)
+- [ ] Add request logging and structured error responses
+- [ ] Migrate to TypeScript for stronger type safety across routes and Prisma models
 
 ## License
 
