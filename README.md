@@ -62,6 +62,11 @@ Welcome route.
 ### `GET /planets`
 Returns all planets, including their moons and solar system.
 
+**Query params:**
+- `type` — `Terrestrial`, `Gas-giant`, `Ice-giant`, `Ice dwarf`, `Earth-like`
+- `colonized` — `Yes` / `No`
+- `name` — partial match
+
 ### `GET /planets/:planet`
 Returns a single planet by name (case-insensitive), with full details including moons and solar system.
 
@@ -69,6 +74,9 @@ Returns a single planet by name (case-insensitive), with full details including 
 
 ### `GET /moons`
 Returns all moons, including their parent planet.
+
+**Query params:**
+- `name` — partial match
 
 ### `GET /moons/:moon`
 Returns a single moon by name (case-insensitive), including its parent planet.
@@ -89,7 +97,7 @@ Returns a single moon by name (case-insensitive), including its parent planet.
 - [ ] Add a `systems` endpoint (`/systems`, `/systems/:system`) to query solar systems directly
 
 **API features**
-- [ ] Add pagination and query filters (e.g. `?page=`, `?limit=`, `?sortBy=name`, `?type=gas-giant`)
+- [x] Add pagination and query filters (e.g. `?page=`, `?limit=`, `?sortBy=name`, `?type=gas-giant`)
 - [ ] Add rate limiting to protect the free-tier hosting
 
 **Code quality**
