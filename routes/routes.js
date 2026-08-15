@@ -21,55 +21,97 @@ async function routes(fastify, options) {
         schema: {
             description: 'Returns all planets',
             tags: ['Planets'],
+            querystring: {
+                type: 'object',
+                properties: {
+                    page: { type: 'integer', minimum: 1, default: 1 },
+                    limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 }
+                }
+            },
             response: {
                 200: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            id: { type: 'integer' },
-                            name: { type: 'string' },
-                            description: { type: 'string' },
-                            moons: {
-                                type: 'array',
-                                items: {
-                                    type: 'object',
-                                    properties: { name: { type: 'string' } }
-                                }
-                            },
-                            system: {
+                    type: 'object',
+                    properties: {
+                        data: {
+                            type: 'array',
+                            items: {
                                 type: 'object',
-                                properties: { name: { type: 'string' } }
+                                properties: {
+                                    id: { type: 'integer' },
+                                    name: { type: 'string' },
+                                    description: { type: 'string' },
+                                    moons: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: { name: { type: 'string' } }
+                                        }
+                                    },
+                                    system: {
+                                        type: 'object',
+                                        properties: { name: { type: 'string' } }
+                                    }
+                                }
+                            }
+                        },
+                        pagination: {
+                            type: 'object',
+                            properties: {
+                                page: { type: 'integer' },
+                                limit: { type: 'integer' },
+                                total: { type: 'integer' },
+                                totalPages: { type: 'integer' }
                             }
                         }
                     }
-                }
-            }
-        }
+                },
+            },
+
+        },
+
+
     }, async (request, reply) => {
         try {
-            const allPlanets = await fastify.prisma.planet.findMany({
-                orderBy: {
-                    id: "asc"
-                },
-                include: {
-                    moons: {
-                        select: {
-                            name: true,
-                        }
+
+            const { page, limit } = request.query
+            const skip = (page - 1) * limit
+
+            const [allPlanets, total] = await Promise.all([
+                fastify.prisma.planet.findMany({
+                    orderBy: {
+                        id: "asc"
                     },
-                    system: {
-                        select: {
-                            name: true
+                    skip: skip,
+                    take: limit,
+                    include: {
+                        moons: {
+                            select: {
+                                name: true,
+                            }
+                        },
+                        system: {
+                            select: {
+                                name: true
+                            }
                         }
                     }
-                }
-            })
+                }),
+                fastify.prisma.planet.count()
+            ])
 
             if (!allPlanets) {
                 return reply.code(404).send({ error: 'Planets not found' })
             }
-            return allPlanets
+
+            return {
+                data: allPlanets,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            }
         } catch (err) {
             reply.status(500).send(err)
         }
@@ -170,51 +212,89 @@ async function routes(fastify, options) {
         schema: {
             description: 'Returns all moons',
             tags: ['Moons'],
+            querystring: {
+                type: 'object',
+                properties: {
+                    page: { type: 'integer', minimum: 1, default: 1 },
+                    limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 }
+                }
+            },
             response: {
                 200: {
-                    type: 'array',
-                    items: {
-                        type: 'object',
-                        properties: {
-                            id: { type: 'integer' },
-                            name: { type: 'string' },
-                            description: { type: 'string' },
-                            planet: {
+                    type: 'object',
+                    properties: {
+                        data: {
+                            type: 'array',
+                            items: {
                                 type: 'object',
                                 properties: {
                                     id: { type: 'integer' },
-                                    name: { type: 'string' }
+                                    name: { type: 'string' },
+                                    description: { type: 'string' },
+                                    planet: {
+                                        type: 'object',
+                                        properties: {
+                                            id: { type: 'integer' },
+                                            name: { type: 'string' }
+                                        }
+                                    }
                                 }
+                            }
+                        },
+                        pagination: {
+                            type: 'object',
+                            properties: {
+                                page: { type: 'integer' },
+                                limit: { type: 'integer' },
+                                total: { type: 'integer' },
+                                totalPages: { type: 'integer' }
                             }
                         }
                     }
+                },
 
-                }
-            }
+            },
         }
     }, async (request, reply) => {
         try {
-            const moons = await fastify.prisma.moon.findMany({
-                orderBy: {
-                    id: "asc"
-                },
-                select: {
-                    name: true,
-                    id: true,
-                    description: true,
-                    planet: {
-                        select: {
-                            id: true,
-                            name: true,
+
+            const { page, limit } = request.query
+            const skip = (page - 1) * limit
+
+            const [allMoons, total] = await Promise.all([
+                fastify.prisma.moon.findMany({
+                    orderBy: {
+                        id: "asc"
+                    },
+                    skip: skip,
+                    take: limit,
+                    select: {
+                        name: true,
+                        id: true,
+                        description: true,
+                        planet: {
+                            select: {
+                                id: true,
+                                name: true,
+                            }
                         }
                     }
-                }
+                }),
+                fastify.prisma.moon.count()
+            ])
 
-            })
-            if (!moons) {
+            if (!allMoons) {
                 return reply.code(404).send({ error: 'Moons not found' })
             }
-            return moons
+            return {
+                data: allMoons,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            }
         } catch (error) {
             reply.status(500).send(error)
         }
