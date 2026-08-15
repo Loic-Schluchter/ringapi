@@ -26,7 +26,7 @@ async function routes(fastify, options) {
                 properties: {
                     page: { type: 'integer', minimum: 1, default: 1 },
                     limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
-                    type: { type: 'string', description: 'Filter by planet type, e.g. Gas-giant' },
+                    type: { type: 'string', enum: ['Terrestrial', 'Gas-giant', 'Ice-giant', 'Ice dwarf', 'Earth-like'], description: 'Filter by planet type, e.g. Gas-giant' },
                     colonized: { type: 'string', enum: ['Yes', 'No'], description: 'Filter by colonization status' },
                     name: { type: 'string', description: 'Partial, name search' }
                 }
