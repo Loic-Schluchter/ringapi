@@ -40,8 +40,25 @@ model moon {
 }
 
 model system {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
-  description String
-  planets     planet[]
+  id           Int          @id @default(autoincrement())
+  name         String
+  slug         String       @unique
+  description  String
+  stars        Int?
+  colonized    String?
+  species      String?
+  government   government[]
+  planets      planet[]
+  governmentId Int?
+}
+
+model government {
+  id                Int      @id @default(autoincrement())
+  name              String
+  slug              String   @unique
+  type              String
+  executiveBranch   String
+  legislativeBranch String
+  militaryBranch    String
+  systems           system[]
 }
