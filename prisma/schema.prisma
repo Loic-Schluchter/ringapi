@@ -40,16 +40,15 @@ model moon {
 }
 
 model system {
-  id           Int          @id @default(autoincrement())
-  name         String
-  slug         String       @unique
-  description  String
-  stars        Int?
-  colonized    String?
-  species      String?
-  government   government[]
-  planets      planet[]
-  governmentId Int?
+  id          Int          @id @default(autoincrement())
+  name        String
+  slug        String       @unique
+  description String
+  stars       Int?
+  colonized   String?
+  species     String?
+  government  government[]
+  planets     planet[]
 }
 
 model government {

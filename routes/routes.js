@@ -479,6 +479,21 @@ async function routes(fastify, options) {
                         id: { type: 'integer' },
                         name: { type: 'string' },
                         slug: { type: 'string' },
+                        description: { type: 'string' },
+                        stars: { type: 'integer' },
+                        colonized: { type: 'string' },
+                        species: { type: 'string' },
+                        government: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    id: { type: 'integer' },
+                                    name: { type: 'string' },
+                                    type: { type: 'string' },
+                                }
+                            }
+                        },
                         planets: {
                             type: 'array',
                             items: {
@@ -489,6 +504,7 @@ async function routes(fastify, options) {
                                 }
                             }
                         }
+
                     }
                 },
                 404: {
@@ -505,11 +521,13 @@ async function routes(fastify, options) {
 
             const foundSystem = await fastify.prisma.system.findFirst({
                 where: {
-                    slug: { equals: system, mode: 'insensitive' }
+                    slug: { contains: system, mode: 'insensitive' }
                 },
                 include: {
-                    planets: { select: { id: true, name: true } }
+                    planets: { select: { id: true, name: true } },
+                    government: { select: { id: true, name: true, type: true } }
                 }
+
             })
 
             if (!foundSystem) {
