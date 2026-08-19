@@ -8,12 +8,12 @@ datasource db {
 }
 
 model planet {
-  id                      Int      @id @default(autoincrement())
-  name                    String   @unique
+  id                      Int          @id @default(autoincrement())
+  name                    String       @unique
   description             String
   systemId                Int?
   type                    String?
-  diameter                Decimal? @db.Decimal
+  diameter                Float?
   gravity                 Float?
   length_of_day           Float?
   length_of_year          String?
@@ -23,12 +23,13 @@ model planet {
   temperature_avg         Float?
   temperature_max         Float?
   demonym                 String?
-  species                 String?
   population              String?
-  government              String?
+  government              government[]
   colonized               String?
   moons                   moon[]
-  system                  system?  @relation(fields: [systemId], references: [id])
+  system                  system?      @relation(fields: [systemId], references: [id])
+  homeworldOf             species[]    @relation("Homeworld")
+  inhabitedBy             species[]    @relation("Inhabitants")
 }
 
 model moon {
@@ -40,8 +41,50 @@ model moon {
 }
 
 model system {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
+  id          Int          @id @default(autoincrement())
+  name        String
+  slug        String       @unique
   description String
+  stars       Int?
+  colonized   String?
+  species     species?      @relation(fields: [speciesId], references: [id])
+  speciesId   Int?
+  government  government[]
   planets     planet[]
+}
+
+model government {
+  id                Int      @id @default(autoincrement())
+  name              String
+  slug              String   @unique
+  type              String
+  executiveBranch   String
+  legislativeBranch String
+  militaryBranch    String
+  systems           system[]
+  planet            planet[]
+  species           species? @relation(fields: [speciesId], references: [id])
+  speciesId         Int?
+}
+
+model species {
+  id Int @id @default(autoincrement())
+
+  name        String
+  slug        String       @unique
+  aliases     String
+  homeworld   planet       @relation("Homeworld", fields: [planetId], references: [id])
+  planetId    Int
+  livesOn     planet[] @relation("Inhabitants")
+  evolved     String
+  disappeared String
+  techlevel   String
+  government  government[]
+  systems     system[]
+  capital     Json
+  military    Json
+  avgheight   Json
+  avgweight   Json
+  avglifespan Json
+  
 }

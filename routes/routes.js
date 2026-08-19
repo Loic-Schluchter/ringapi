@@ -44,6 +44,20 @@ async function routes(fastify, options) {
                                     name: { type: 'string' },
                                     description: { type: 'string' },
                                     type: { type: 'string' },
+                                    homeworldOf: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: { name: { type: 'string' } }
+                                        }
+                                    },
+                                    inhabitedBy: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: { name: { type: 'string' } }
+                                        }
+                                    },
                                     moons: {
                                         type: 'array',
                                         items: {
@@ -54,25 +68,24 @@ async function routes(fastify, options) {
                                     system: {
                                         type: 'object',
                                         properties: { name: { type: 'string' } }
-                                    }
+                                    },
+
                                 }
                             }
-                        },
-                        pagination: {
-                            type: 'object',
-                            properties: {
-                                page: { type: 'integer' },
-                                limit: { type: 'integer' },
-                                total: { type: 'integer' },
-                                totalPages: { type: 'integer' }
-                            }
+                        }
+                    },
+                    pagination: {
+                        type: 'object',
+                        properties: {
+                            page: { type: 'integer' },
+                            limit: { type: 'integer' },
+                            total: { type: 'integer' },
+                            totalPages: { type: 'integer' }
                         }
                     }
-                },
+                }
             },
-
         },
-
 
     }, async (request, reply) => {
         try {
@@ -108,7 +121,9 @@ async function routes(fastify, options) {
                             select: {
                                 name: true
                             }
-                        }
+                        },
+                        homeworldOf: { select: { name: true } },   // espèces dont cette planet est l'origine
+                        inhabitedBy: { select: { name: true } }
                     }
                 }),
                 fastify.prisma.planet.count({ where })
@@ -149,6 +164,20 @@ async function routes(fastify, options) {
                         name: { type: 'string' },
                         description: { type: 'string' },
                         type: { type: 'string' },
+                        homeworldOf: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: { name: { type: 'string' } }
+                            }
+                        },
+                        inhabitedBy: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: { name: { type: 'string' } }
+                            }
+                        },
                         diameter: { type: 'string' },
                         gravity: { type: 'number' },
                         length_of_day: { type: ['number', 'null'] },
@@ -187,7 +216,8 @@ async function routes(fastify, options) {
                             properties: {
                                 name: { type: 'string' },
                             }
-                        }
+                        },
+
                     }
                 },
                 404: {
@@ -208,6 +238,8 @@ async function routes(fastify, options) {
                 include: {
                     moons: true,
                     system: true,
+                    homeworldOf: true,
+                    inhabitedBy: true,
                 }
             })
 
@@ -341,6 +373,12 @@ async function routes(fastify, options) {
                         }
                     }
                 }
+            },
+            404: {
+                type: 'object',
+                properties: {
+                    error: { type: 'string' }
+                }
             }
         }
     }, async (request, reply) => {
@@ -368,6 +406,167 @@ async function routes(fastify, options) {
 
             return foundMoon
 
+        } catch (error) {
+            reply.status(500).send(error)
+        }
+    });
+
+    fastify.get('/systems', {
+        schema: {
+            description: 'Returns all systems',
+            tags: ['Systems'],
+            querystring: {
+                type: 'object',
+                properties: {
+                    page: { type: 'integer', minimum: 1, default: 1, description: 'Page number, starting at 1' },
+                    limit: { type: 'integer', minimum: 1, maximum: 100, default: 10, description: 'Number of results per page (max 100)' },
+                    name: { type: 'string', description: 'Partial, name search' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        data: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    id: { type: 'integer' },
+                                    name: { type: 'string' },
+                                    slug: { type: 'string' },
+                                    description: { type: 'string' },
+                                }
+                            }
+                        },
+                        pagination: {
+                            type: 'object',
+                            properties: {
+                                page: { type: 'integer' },
+                                limit: { type: 'integer' },
+                                total: { type: 'integer' },
+                                totalPages: { type: 'integer' }
+                            }
+                        }
+                    }
+                },
+            },
+        }
+    }, async (request, reply) => {
+        try {
+
+            const { page, limit, name } = request.query
+            const skip = (page - 1) * limit
+            const where = {}
+            if (name) {
+                where.name = {
+                    contains: name,
+                    mode: 'insensitive'
+                }
+            }
+            const [allSystems, total] = await Promise.all([
+                fastify.prisma.system.findMany({
+                    where,
+                    orderBy: {
+                        id: "asc"
+                    },
+                    skip: skip,
+                    take: limit,
+                }),
+                fastify.prisma.system.count({ where })
+            ])
+
+            if (!allSystems) {
+                return reply.code(404).send({ error: 'Systems not found' })
+            }
+            return {
+                data: allSystems,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            }
+        } catch (err) {
+            reply.status(500).send(err)
+        }
+    })
+
+
+    fastify.get('/systems/:system', {
+        schema: {
+            description: 'Returns a single system by slug, including its planets',
+            tags: ['Systems'],
+            params: {
+                type: 'object',
+                properties: {
+                    system: { type: 'string', description: 'System slug, e.g. sol-system' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        name: { type: 'string' },
+                        slug: { type: 'string' },
+                        description: { type: 'string' },
+                        stars: { type: 'integer' },
+                        colonized: { type: 'string' },
+                        species: { type: 'string' },
+                        government: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    id: { type: 'integer' },
+                                    name: { type: 'string' },
+                                    type: { type: 'string' },
+                                }
+                            }
+                        },
+                        planets: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    id: { type: 'integer' },
+                                    name: { type: 'string' }
+                                }
+                            }
+                        }
+
+                    }
+                },
+                404: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' }
+                    }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const { system } = request.params
+
+            const foundSystem = await fastify.prisma.system.findFirst({
+                where: {
+                    slug: { contains: system, mode: 'insensitive' }
+                },
+                include: {
+                    planets: { select: { id: true, name: true } },
+                    government: { select: { id: true, name: true, type: true } }
+                }
+
+            })
+
+            if (!foundSystem) {
+                return reply.code(404).send({ error: 'System not found' })
+            }
+
+            return foundSystem
         } catch (error) {
             reply.status(500).send(error)
         }
