@@ -93,7 +93,7 @@ Returns a single moon by name (case-insensitive), including its parent planet.
 **Data**
 - [ ] Normalize `length_of_year` / `atmospheric_pressure` into consistent numeric units
 - [ ] Expand data coverage within The Expanse universe (Belt stations, ships, factions)
-- [ ] Add a `systems` endpoint (`/systems`, `/systems/:system`) to query solar systems directly
+- [x] Add a `systems` endpoint (`/systems`, `/systems/:system`) to query solar systems directly
 
 **API features**
 - [x] Add pagination and query filters (e.g. `?page=`, `?limit=`, `?sortBy=name`, `?type=gas-giant`)
