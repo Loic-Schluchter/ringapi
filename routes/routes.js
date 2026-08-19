@@ -44,6 +44,20 @@ async function routes(fastify, options) {
                                     name: { type: 'string' },
                                     description: { type: 'string' },
                                     type: { type: 'string' },
+                                    homeworldOf: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: { name: { type: 'string' } }
+                                        }
+                                    },
+                                    inhabitedBy: {
+                                        type: 'array',
+                                        items: {
+                                            type: 'object',
+                                            properties: { name: { type: 'string' } }
+                                        }
+                                    },
                                     moons: {
                                         type: 'array',
                                         items: {
@@ -54,25 +68,24 @@ async function routes(fastify, options) {
                                     system: {
                                         type: 'object',
                                         properties: { name: { type: 'string' } }
-                                    }
+                                    },
+
                                 }
                             }
-                        },
-                        pagination: {
-                            type: 'object',
-                            properties: {
-                                page: { type: 'integer' },
-                                limit: { type: 'integer' },
-                                total: { type: 'integer' },
-                                totalPages: { type: 'integer' }
-                            }
+                        }
+                    },
+                    pagination: {
+                        type: 'object',
+                        properties: {
+                            page: { type: 'integer' },
+                            limit: { type: 'integer' },
+                            total: { type: 'integer' },
+                            totalPages: { type: 'integer' }
                         }
                     }
-                },
+                }
             },
-
         },
-
 
     }, async (request, reply) => {
         try {
@@ -108,7 +121,9 @@ async function routes(fastify, options) {
                             select: {
                                 name: true
                             }
-                        }
+                        },
+                        homeworldOf: { select: { name: true } },   // espèces dont cette planet est l'origine
+                        inhabitedBy: { select: { name: true } }
                     }
                 }),
                 fastify.prisma.planet.count({ where })
@@ -149,6 +164,20 @@ async function routes(fastify, options) {
                         name: { type: 'string' },
                         description: { type: 'string' },
                         type: { type: 'string' },
+                        homeworldOf: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: { name: { type: 'string' } }
+                            }
+                        },
+                        inhabitedBy: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: { name: { type: 'string' } }
+                            }
+                        },
                         diameter: { type: 'string' },
                         gravity: { type: 'number' },
                         length_of_day: { type: ['number', 'null'] },
@@ -187,7 +216,8 @@ async function routes(fastify, options) {
                             properties: {
                                 name: { type: 'string' },
                             }
-                        }
+                        },
+
                     }
                 },
                 404: {
@@ -208,6 +238,8 @@ async function routes(fastify, options) {
                 include: {
                     moons: true,
                     system: true,
+                    homeworldOf: true,
+                    inhabitedBy: true,
                 }
             })
 
