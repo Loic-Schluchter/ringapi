@@ -58,9 +58,9 @@ model government {
   name              String
   slug              String   @unique
   type              String
-  executiveBranch   String
-  legislativeBranch String
-  militaryBranch    String
+  executiveBranch   Json?
+  legislativeBranch Json?
+  militaryBranch    Json?
   systems           system[]
   planet            planet[]
   species           species? @relation(fields: [speciesId], references: [id])

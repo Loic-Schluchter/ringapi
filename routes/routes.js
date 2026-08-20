@@ -571,6 +571,150 @@ async function routes(fastify, options) {
             reply.status(500).send(error)
         }
     });
+
+    fastify.get('/government', {
+        schema: {
+            description: 'Returns all government',
+            tags: ['Government'],
+            querystring: {
+                type: 'object',
+                properties: {
+                    page: { type: 'integer', minimum: 1, default: 1, description: 'Page number, starting at 1' },
+                    limit: { type: 'integer', minimum: 1, maximum: 100, default: 10, description: 'Number of results per page (max 100)' },
+                    name: { type: 'string', description: 'Partial, name search' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        data: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    id: { type: 'integer' },
+                                    name: { type: 'string' },
+                                    slug: { type: 'string' },
+                                    description: { type: 'string' },
+                                    type: { type: 'string' }
+                                }
+                            }
+                        },
+                        pagination: {
+                            type: 'object',
+                            properties: {
+                                page: { type: 'integer' },
+                                limit: { type: 'integer' },
+                                total: { type: 'integer' },
+                                totalPages: { type: 'integer' }
+                            }
+                        }
+                    }
+                },
+            },
+        }
+    }, async (request, reply) => {
+        try {
+
+            const { page, limit, name } = request.query
+            const skip = (page - 1) * limit
+            const where = {}
+            if (name) {
+                where.name = {
+                    contains: name,
+                    mode: 'insensitive'
+                }
+            }
+            const [allgovernment, total] = await Promise.all([
+                fastify.prisma.government.findMany({
+                    where,
+                    orderBy: {
+                        id: "asc"
+                    },
+                    skip: skip,
+                    take: limit,
+                }),
+                fastify.prisma.government.count({ where })
+            ])
+
+            if (!allgovernment) {
+                return reply.code(404).send({ error: 'Government not found' })
+            }
+            return {
+                data: allgovernment,
+                pagination: {
+                    page,
+                    limit,
+                    total,
+                    totalPages: Math.ceil(total / limit)
+                }
+            }
+        } catch (err) {
+            reply.status(500).send(err)
+        }
+    })
+
+    fastify.get('/government/:government', {
+        schema: {
+            description: 'Returns a single government by slug',
+            tags: ['Government'],
+            params: {
+                type: 'object',
+                properties: {
+                    government: { type: 'string', description: 'Government slug, e.g. laconian-empire' }
+                }
+            },
+            response: {
+                200: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'integer' },
+                        name: { type: 'string' },
+                        slug: { type: 'string' },
+                        description: { type: 'string' },
+                        type: { type: 'string' },
+                        executiveBranch: { type: 'string' },
+                        legislativeBranch: { type: 'string' },
+                        militaryBranch: {
+                            type: 'array',
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    name: { type: 'string' }
+                                }
+                            }
+                        },
+                        species: { type: 'string' },
+
+                    }
+                },
+                404: {
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' }
+                    }
+                }
+            }
+        }
+    }, async (request, reply) => {
+        try {
+            const { government } = request.params
+
+            const foundGovernment = await fastify.prisma.government.findFirst({
+                where: {
+                    slug: { contains: government, mode: 'insensitive' }
+                },
+            })
+            if (!foundGovernment) {
+                return reply.code(404).send({ error: 'Government not found' })
+            }
+
+            return foundGovernment
+        } catch (error) {
+            reply.status(500).send(error)
+        }
+    });
 }
 
 export default routes
